@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "leaderboardinsperdata",
+  "private_key_id": "96fba09eb59aaf4e2f603ed6f407b202c2f309b2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDWvvqRmYB98ykA\nlJAQkwEU+U+p6A9fs5MkyUjybcy6NAviY58sxOUbkAgqkfLJLR4/a7QKtNvdf8hK\nI0zi/VX7qIyNFETpRgakv6ql1pQ1jsFJSWNE9Zf9Si9h3Xg3Diuem57Nes/xnadL\nyUCM2v5D9Q3y7YWs0jyng5oaC+jspjTGwPhJgIWJhvgyCIekK+ZeD+rzgnBDRq5C\nPKHGqFH3P2dDEOA1d4bP2yx6UegLHfdpiDqZy+mKVqIGfoj1xKn/+95nqxZBjgFH\nVblTB70J7GpdVB2t4nK1L9LC9yciYfAKK/lXE1pjNAAofqx1DxYMttvLx3c+isuv\nQCgPbgLXAgMBAAECggEACYqy14VakD4dtEjlndbqVWQ+he4pwLbZ8uh+tUbrsdpe\nLNEAYZzeETt1IW8aupWmomrGtTMUEeN7os+uuudGysfSdvJPnY3e/bMGghfmvfp5\n3CfGoWnINxj0wgR1Mv0OMx33EGpEkxfONy/aDmgspBhfZkvnhKZSy56tWjrtPpaP\nKjb7W1ZdB611I4FwCtqEUXxPVaqBBTHziNWD6c7BHJVQlizNMBRllE6FydHiYP3c\nV51rvh4KaPkJXs7ecuKEF1jUYT3qgiTTN2EC7cqc5pmLLyjx3dMIWrikIPhYFDc5\neo7VEcoHLiH7sxRtUge1MkgRwriLNf5W29gFHMmtAQKBgQDv8k64lvbP9UPcHmDe\ndMBLtjelpCe+gdqn2TbxHygQ55TeZDq1sNwuJx4gLH+DR0IpvscbgnoWWuJOFX3a\nrE2JSh/bQ9JoMILV4ZBrOgqTTZWMUNbP8zA9LPBv+TbnvOEr2vHGoax4yMJyr+E0\nb+84QYQ8lrHaP93GByO5wRtxQwKBgQDlHQx7+h96rKiqDttklpR3150fKILl03JK\nYpmrFmMpjxnngjslKnIOwEo5/Pi0sCUuPZag49J7XCmSjGkCh0VIonAUilNtW6bU\nhcAt2eiH3vAHez9SwrR6pxrqYfkfWOemfUQTtXsxD8q10TgoruFXSggRmXQJbl0f\nfJrwskwU3QKBgQDg2epXJHDpc+dBkN4p2LKSwJDpEimEZt9mRzErR40eOkXRGY/C\nz5elUFb0w35CoTYpNHQVHXIXHNfRYGZt0uVd8C5mJOo5ZKxWjWfuc5eRbjTkJqUG\nfdgIm+I8rAd9pgxEMoo7HyomjctZ+eNKZlKAHzUyKe1EnnDOr8YUvhdfTQKBgQDb\nZCmkPisOqW8JCRkFBTw+VfVa9MwDj6qNmEVWEyX5kdJYYdiJClAV2AQ76wWs4E96\nK/elMQNIpUQZ1OJpTWcG2qVAxgSFX5ItR7ZzMYr9MHngcCB++3sfSAz6C78mSVfp\nkWIzDUFeBaUy3ZlNO8kEcRuw3qTCsy/xCrzDZ7h68QKBgAdm+tbA4z9YBgLOr2rD\n1S3TM+YTL/fPWT4HuMXUwBR3ou2i4allIhVb3fDwWjlSaL5Ro3Ysu4CetVh+3fDc\ntFLUlSeG9k9LKKpVyIrHgxO6mEsV1qRY4gZvwYlGJvaS6ojUzjphvHDKvQAJCI/2\nsAsLr+Oij34eH5mndcMALwKg\n-----END PRIVATE KEY-----\n",
+  "client_email": "sheets-leaderoard@leaderboardinsperdata.iam.gserviceaccount.com",
+  "client_id": "115759375483848439788",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/sheets-leaderoard%40leaderboardinsperdata.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
