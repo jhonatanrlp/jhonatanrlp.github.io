@@ -163,7 +163,6 @@
     const codigo = document.getElementById("codigo").value.trim();
     const feedback = document.getElementById("feedback");
 
-    // Salva o nome só na primeira questão
     if (questaoAtual === 0) {
       if (!nomeInput) {
         feedback.innerText = "⚠️ Digite seu nome na primeira questão!";
@@ -199,11 +198,13 @@
       pontos += 5;
     } else {
       feedback.className = "erro";
+      feedback.innerText = "❌ Erro no código: " + data.message;
+      return;
     }
+
 
     document.getElementById("pontos").innerText = `Pontuação: ${pontos}`;
 
-    // Avança para próxima questão ou finaliza
     if (questaoAtual < questoes.length - 1) {
       questaoAtual++;
       mostrarQuestao();
