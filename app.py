@@ -155,19 +155,28 @@ def submit():
             if local_vars:
                 valor = list(local_vars.values())[-1]
 
-        # Correto
+        # Se acertou
         if valor == questao["esperado"]:
             atualizar_pontuacao(nome, 10)
             return jsonify({"status": "ok", "message": "Correto! +10 pontos"})
-        else:
-            # Verifica proximidade
-            score = max(difflib.SequenceMatcher(None, codigo, s).ratio() for s in questao["solucoes"])
-            if score > 0.6:
-                atualizar_pontuacao(nome, 5)
-                return jsonify({"status": "quase", "message": "Quase lá, sua solução está próxima! +5 pontos"})
-            return jsonify({"status": "erro", "message": "Resposta incorreta"})
+        
+        # Se ficou próximo
+        score = max(difflib.SequenceMatcher(None, codigo, s).ratio() for s in questao["solucoes"])
+        if score > 0.6:
+            atualizar_pontuacao(nome, 5)
+            return jsonify({"status": "quase", "message": "Quase lá, sua solução está próxima! +5 pontos"})
+        
+        # Se errou
+        return jsonify({"status": "erro", "message": "Resposta incorreta"})
+    
     except Exception as e:
         return jsonify({"status": "erro", "message": str(e)})
+    
+@app.route("/finalizar", methods=["POST"])
+def finalizar():
+    content = request.json
+    pontos = content.get("pontos")
+    return jsonify({"status": "ok", "message": f"Quiz finalizado! Sua pontuação: {pontos} pontos"})
 
 if __name__ == "__main__":
     app.run()

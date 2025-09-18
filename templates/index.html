@@ -163,11 +163,6 @@
   const codigo = document.getElementById("codigo").value.trim();
   const feedback = document.getElementById("feedback");
 
-  // Esconde o campo nome depois da primeira questão
-  if (questaoAtual === 0) {
-    document.getElementById("nome-div").style.display = "none";
-  }
-
   if (!nome || !codigo) {
     feedback.innerText = "⚠️ Preencha todos os campos!";
     feedback.className = "erro";
@@ -195,6 +190,10 @@
     document.getElementById("pontos").innerText = `Pontuação: ${pontos}`;
   } else {
     feedback.className = "erro";
+  }
+
+  if (questaoAtual === 0) {
+    document.getElementById("nome-div").style.display = "none";
   }
 
   // Próxima pergunta ou finalizar
