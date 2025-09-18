@@ -54,24 +54,24 @@
     }
 
     .btns {
-    display: flex;
-    justify-content: center; 
-    margin-top: 20px;
+      display: flex;
+      justify-content: center; 
+      margin-top: 20px;
     }
 
-  button {
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    background: #2563eb;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
 
-      button:hover {
-    background: #1d4ed8;
+    button:hover {
+      background: #1d4ed8;
     }
 
     #feedback {
@@ -119,9 +119,8 @@
     <textarea id="codigo" placeholder="Escreva seu código Python aqui..."></textarea>
 
     <div class="btns">
-    <button id="acao" onclick="acao()">Próxima ➡️</button>
+      <button id="acao" onclick="acao()">Próxima ➡️</button>
     </div>
-
 
     <div id="feedback"></div>
 
@@ -130,105 +129,114 @@
   </div>
 
   <script>
-  let questoes = [];
-  let questaoAtual = 0;
-  let pontos = 0;
+    let questoes = [];
+    let questaoAtual = 0;
+    let pontos = 0;
 
-  async function carregarQuestoes() {
-    const res = await fetch("/quiz");
-    questoes = await res.json();
-    mostrarQuestao();
-    atualizarBotao();
-  }
-
-  function mostrarQuestao() {
-    const q = questoes[questaoAtual];
-    document.getElementById("questao").innerHTML =
-      `<b>Questão ${questaoAtual + 1}:</b> R: <code>${q.pergunta}</code>`;
-    document.getElementById("codigo").value = "";
-    document.getElementById("feedback").innerText = "";
-  }
-
-  function atualizarBotao() {
-    const btn = document.getElementById("acao");
-    if (questaoAtual < questoes.length - 1) {
-      btn.innerText = "Próxima ➡️";
-    } else {
-      btn.innerText = "Enviar Resultado 🏆";
+    async function carregarQuestoes() {
+      const res = await fetch("/quiz");
+      questoes = await res.json();
+      mostrarQuestao();
+      atualizarBotao();
     }
-  }
 
-  async function acao() {
-  const nome = document.getElementById("nome").value.trim();
-  const codigo = document.getElementById("codigo").value.trim();
-  const feedback = document.getElementById("feedback");
+    function mostrarQuestao() {
+      const q = questoes[questaoAtual];
+      document.getElementById("questao").innerHTML =
+        `<b>Questão ${questaoAtual + 1}:</b> R: <code>${q.pergunta}</code>`;
+      document.getElementById("codigo").value = "";
+      document.getElementById("feedback").innerText = "";
+    }
 
-  if (!nome || !codigo) {
-    feedback.innerText = "⚠️ Preencha todos os campos!";
-    feedback.className = "erro";
-    return;
-  }
+    function atualizarBotao() {
+      const btn = document.getElementById("acao");
+      if (questaoAtual < questoes.length - 1) {
+        btn.innerText = "Próxima ➡️";
+      } else {
+        btn.innerText = "Enviar Resultado 🏆";
+      }
+    }
 
-  const q = questoes[questaoAtual];
+    async function acao() {
+      const nome = document.getElementById("nome").value.trim();
+      const codigo = document.getElementById("codigo").value.trim();
+      const feedback = document.getElementById("feedback");
 
-  const res = await fetch("/submit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nome, questao_id: q.id, codigo })
-  });
+      if (!nome || !codigo) {
+        feedback.innerText = "⚠️ Preencha todos os campos!";
+        feedback.className = "erro";
+        return;
+      }
 
-  const data = await res.json();
-  feedback.innerText = data.message;
+      const q = questoes[questaoAtual];
 
-  if (data.status === "ok") {
-    feedback.className = "ok";
-    pontos += 10;
-    document.getElementById("pontos").innerText = `Pontuação: ${pontos}`;
-  } else if (data.status === "quase") {
-    feedback.className = "quase";
-    pontos += 5;
-    document.getElementById("pontos").innerText = `Pontuação: ${pontos}`;
-  } else {
-    feedback.className = "erro";
-  }
+      const res = await fetch("/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, questao_id: q.id, codigo })
+      });
 
-  if (questaoAtual === 0) {
-    document.getElementById("nome-div").style.display = "none";
-  }
+      const data = await res.json();
 
-  // Próxima pergunta ou finalizar
-  if (questaoAtual < questoes.length - 1) {
-    questaoAtual++;
-    mostrarQuestao();
-    atualizarBotao();
-  } else {
-    await fetch("/finalizar", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, pontos })
-    });
-    feedback.innerText = `🏆 Quiz finalizado! Sua pontuação: ${pontos}`;
-    feedback.className = "ok";
+      if (data.status === "ok") {
+        feedback.className = "ok";
+        feedback.innerText = data.message;
+        await atualizarPontuacaoDoUsuario(nome);
+      } else if (data.status === "quase") {
+        feedback.className = "quase";
+        feedback.innerText = data.message;
+        await atualizarPontuacaoDoUsuario(nome);
+      } else {
+        feedback.className = "erro";
+        feedback.innerText = "Erro: " + data.message;  // mostra erro real do Python
+      }
+
+      if (questaoAtual === 0) {
+        document.getElementById("nome-div").style.display = "none";
+      }
+
+      // Próxima pergunta ou finalizar
+      if (questaoAtual < questoes.length - 1) {
+        questaoAtual++;
+        mostrarQuestao();
+        atualizarBotao();
+      } else {
+        await fetch("/finalizar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, pontos })
+        });
+        feedback.innerText = `🏆 Quiz finalizado! Sua pontuação: ${pontos}`;
+        feedback.className = "ok";
+        atualizarLeaderboard();
+      }
+    }
+
+    async function atualizarPontuacaoDoUsuario(nome) {
+      const res = await fetch("/leaderboard");
+      const data = await res.json();
+      const jogador = data.find(item => item.nome === nome);
+      if (jogador) {
+        pontos = jogador.pontos;
+        document.getElementById("pontos").innerText = `Pontuação: ${pontos}`;
+      }
+    }
+
+    async function atualizarLeaderboard() {
+      const res = await fetch("/leaderboard");
+      const data = await res.json();
+      const lb = document.getElementById("leaderboard");
+      lb.innerHTML = "";
+
+      data.forEach(item => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${item.nome}</span><span>${item.pontos} pts</span>`;
+        lb.appendChild(li);
+      });
+    }
+
+    carregarQuestoes();
     atualizarLeaderboard();
-  }
-}
-
-  async function atualizarLeaderboard() {
-    const res = await fetch("/leaderboard");
-    const data = await res.json();
-    const lb = document.getElementById("leaderboard");
-    lb.innerHTML = "";
-
-    data.forEach(item => {
-      const li = document.createElement("li");
-      li.innerHTML = `<span>${item.nome}</span><span>${item.pontos} pts</span>`;
-      lb.appendChild(li);
-    });
-  }
-
-  carregarQuestoes();
-  atualizarLeaderboard();
-</script>
-
+  </script>
 </body>
 </html>
