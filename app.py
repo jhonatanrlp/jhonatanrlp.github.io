@@ -4,11 +4,14 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import difflib
 import numpy as np
+import os, json
+
 
 app = Flask(__name__)
 
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credenciais.json", scope)
+cred_data = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+creds = ServiceAccountCredentials.from_json_keyfile_dict(cred_data, scope)
 client = gspread.authorize(creds)
 sheet = client.open("Leaderboard").sheet1
 
@@ -45,7 +48,7 @@ QUESTOES = [
         "esperado": 22,
         "solucoes": [
             "max([9,15,3,22,7])",
-            "np.max([9,15,3,22,7])"
+            "import numpy as np\nnp.max([9,15,3,22,7])"
         ]
     },
     {
@@ -54,7 +57,7 @@ QUESTOES = [
         "esperado": 3,
         "solucoes": [
             "min([9,15,3,22,7])",
-            "np.min([9,15,3,22,7])"
+            "import numpy as np\nnp.min([9,15,3,22,7])"
         ]
     },
     {
