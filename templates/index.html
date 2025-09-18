@@ -107,11 +107,15 @@
 </head>
 <body>
   <div class="container">
-    <h1>Quiz: R ➝ Python</h1>
+    <h1>Quiz: R ➝ Python e Limpeza de dados</h1>
 
     <p id="questao" class="questao"><b>Questão:</b> carregando...</p>
+    <h3 id="pontos">Pontuação: 0</h3>
 
-    <input type="text" id="nome" placeholder="Digite seu nome..." />
+    <div id='nome-div'>
+      <input type="text" id="nome" placeholder="Digite seu nome..." />
+    </div>
+
     <textarea id="codigo" placeholder="Escreva seu código Python aqui..."></textarea>
 
     <div class="btns">
@@ -155,53 +159,60 @@
   }
 
   async function acao() {
-    const nome = document.getElementById("nome").value.trim();
-    const codigo = document.getElementById("codigo").value.trim();
-    const feedback = document.getElementById("feedback");
+  const nome = document.getElementById("nome").value.trim();
+  const codigo = document.getElementById("codigo").value.trim();
+  const feedback = document.getElementById("feedback");
 
-    if (!nome || !codigo) {
-      feedback.innerText = "⚠️ Preencha todos os campos!";
-      feedback.className = "erro";
-      return;
-    }
+  // Esconde o campo nome depois da primeira questão
+  if (questaoAtual === 0) {
+    document.getElementById("nome-div").style.display = "none";
+  }
 
-    const q = questoes[questaoAtual];
+  if (!nome || !codigo) {
+    feedback.innerText = "⚠️ Preencha todos os campos!";
+    feedback.className = "erro";
+    return;
+  }
 
-    const res = await fetch("/submit", {
+  const q = questoes[questaoAtual];
+
+  const res = await fetch("/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome, questao_id: q.id, codigo })
+  });
+
+  const data = await res.json();
+  feedback.innerText = data.message;
+
+  if (data.status === "ok") {
+    feedback.className = "ok";
+    pontos += 10;
+    document.getElementById("pontos").innerText = `Pontuação: ${pontos}`;
+  } else if (data.status === "quase") {
+    feedback.className = "quase";
+    pontos += 5;
+    document.getElementById("pontos").innerText = `Pontuação: ${pontos}`;
+  } else {
+    feedback.className = "erro";
+  }
+
+  // Próxima pergunta ou finalizar
+  if (questaoAtual < questoes.length - 1) {
+    questaoAtual++;
+    mostrarQuestao();
+    atualizarBotao();
+  } else {
+    await fetch("/finalizar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, questao_id: q.id, codigo })
+      body: JSON.stringify({ nome, pontos })
     });
-
-    const data = await res.json();
-    feedback.innerText = data.message;
-
-    if (data.status === "ok") {
-      feedback.className = "ok";
-      pontos += 10; // soma pontos
-    } else if (data.status === "quase") {
-      feedback.className = "quase";
-    } else {
-      feedback.className = "erro";
-    }
-
-    // Se ainda não for última, vai pra próxima
-    if (questaoAtual < questoes.length - 1) {
-      questaoAtual++;
-      mostrarQuestao();
-      atualizarBotao();
-    } else {
-      // Última questão → envia total
-      await fetch("/finalizar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, pontos })
-      });
-      feedback.innerText = `🏆 Quiz finalizado! Sua pontuação: ${pontos}`;
-      feedback.className = "ok";
-      atualizarLeaderboard();
-    }
+    feedback.innerText = `🏆 Quiz finalizado! Sua pontuação: ${pontos}`;
+    feedback.className = "ok";
+    atualizarLeaderboard();
   }
+}
 
   async function atualizarLeaderboard() {
     const res = await fetch("/leaderboard");

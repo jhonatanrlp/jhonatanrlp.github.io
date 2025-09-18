@@ -6,7 +6,6 @@ import difflib
 import numpy as np
 import os, json
 
-
 app = Flask(__name__)
 
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -15,10 +14,23 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(cred_data, scope)
 client = gspread.authorize(creds)
 sheet = client.open("Leaderboard").sheet1
 
+# ---------------- Função para atualizar pontuação acumulada ----------------
+def atualizar_pontuacao(nome, pontos):
+    data = sheet.get_all_records()
+    df = pd.DataFrame(data)
+
+    if not df.empty and "nome" in df.columns and nome in df["nome"].values:
+        idx = df[df["nome"] == nome].index[0] + 2  # +2 porque gspread começa em 1 e tem header
+        old = df.loc[df["nome"] == nome, "pontos"].values[0]
+        sheet.update_cell(idx, 2, old + pontos)
+    else:
+        sheet.append_row([nome, pontos])
+
+# ---------------- Questões ----------------
 QUESTOES = [
     {
         "id": 1,
-        "pergunta": "mean(c(1,2,3,4,5))",
+        "pergunta": "mean(c(1,2,3,4,5)) ➝ Traduza para Python",
         "esperado": 3.0,
         "solucoes": [
             "np.mean([1,2,3,4,5])",
@@ -44,32 +56,6 @@ QUESTOES = [
     },
     {
         "id": 4,
-        "pergunta": "max(c(9,15,3,22,7))",
-        "esperado": 22,
-        "solucoes": [
-            "max([9,15,3,22,7])",
-            "import numpy as np\nnp.max([9,15,3,22,7])"
-        ]
-    },
-    {
-        "id": 5,
-        "pergunta": "min(c(9,15,3,22,7))",
-        "esperado": 3,
-        "solucoes": [
-            "min([9,15,3,22,7])",
-            "import numpy as np\nnp.min([9,15,3,22,7])"
-        ]
-    },
-    {
-        "id": 6,
-        "pergunta": "df <- data.frame(x=c(1,2,3), y=c(4,5,6))\nmean(df$y)",
-        "esperado": 5.0,
-        "solucoes": [
-            'import pandas as pd\ndf = pd.DataFrame({"x":[1,2,3], "y":[4,5,6]})\ndf["y"].mean()'
-        ]
-    },
-    {
-        "id": 7,
         "pergunta": "df <- data.frame(x=c(1,2,3))\ndf2 <- df %>% mutate(y = x*2)",
         "esperado": [2,4,6], 
         "solucoes": [
@@ -77,19 +63,44 @@ QUESTOES = [
         ]
     },
     {
-        "id": 8,
-        "pergunta": "df <- data.frame(grupo=c(\"A\",\"A\",\"B\",\"B\"), valor=c(1,2,3,4))\ndf %>% group_by(grupo) %>% summarize(media=mean(valor))",
-        "esperado": {"A":1.5, "B":3.5},
+        "id": 5,
+        "pergunta": "Em Python, como você removeria valores nulos (NaN) de uma coluna chamada 'idade' em um DataFrame df?",
+        "esperado": "dropna",
         "solucoes": [
-            'import pandas as pd\ndf = pd.DataFrame({"grupo":["A","A","B","B"], "valor":[1,2,3,4]})\ndf.groupby("grupo")["valor"].mean().to_dict()'
+            'df["idade"].dropna()',
+            'df.dropna(subset=["idade"])'
         ]
     },
     {
-        "id": 9,
-        "pergunta": "df <- data.frame(x=c(1,2,3), y=c(4,5,6))\nplot(df$x, df$y, type=\"l\")",
-        "esperado": "grafico_linha",
+        "id": 6,
+        "pergunta": "Você tem um DataFrame com uma coluna 'nome' com espaços extras (ex: ' Ana '). Como limpar esses espaços?",
+        "esperado": ["Ana"],
         "solucoes": [
-            'import pandas as pd\nimport matplotlib.pyplot as plt\ndf = pd.DataFrame({"x":[1,2,3], "y":[4,5,6]})\nplt.plot(df["x"], df["y"])\nplt.show()'
+            'df["nome"].str.strip()'
+        ]
+    },
+    {
+        "id": 7,
+        "pergunta": "Crie um gráfico de dispersão em Python usando matplotlib com df['x'] e df['y']",
+        "esperado": "grafico_dispersao",
+        "solucoes": [
+            'import matplotlib.pyplot as plt\nplt.scatter(df["x"], df["y"])\nplt.show()'
+        ]
+    },
+    {
+        "id": 8,
+        "pergunta": "R: df <- data.frame(idade=c(20,25,30))\nnames(df)[names(df)=='idade'] <- 'anos'\nComo ficaria em Python?",
+        "esperado": "anos",
+        "solucoes": [
+            'df.rename(columns={"idade":"anos"})'
+    ]
+    },
+    {
+        "id": 9,
+        "pergunta": "Como criar uma nova coluna 'dobro' que seja o dobro da coluna 'x'?",
+        "esperado": [2,4,6],
+        "solucoes": [
+            'df["dobro"] = df["x"]*2'
         ]
     },
     {
@@ -102,8 +113,7 @@ QUESTOES = [
     }
 ]
 
-
-# --- Rotas ---
+# ---------------- Rotas ----------------
 @app.route("/quiz", methods=["GET"])
 def get_quiz():
     return jsonify(QUESTOES)
@@ -121,19 +131,6 @@ def leaderboard():
     df = df.groupby("nome", as_index=False)["pontos"].sum()
     df = df.sort_values("pontos", ascending=False)
     return df.to_dict(orient="records")
-
-@app.route("/finalizar", methods=["POST"])
-def finalizar():
-    content = request.json
-    nome = content.get("nome")
-    pontos = content.get("pontos") 
-
-    if not nome or pontos is None:
-        return jsonify({"status": "erro", "message": "Dados inválidos"})
-
-    sheet.append_row([nome, pontos])
-    return jsonify({"status": "ok", "message": f"Pontuação final enviada: {pontos} pontos"})
-
 
 @app.route("/submit", methods=["POST"])
 def submit():
@@ -158,13 +155,16 @@ def submit():
             if local_vars:
                 valor = list(local_vars.values())[-1]
 
+        # Correto
         if valor == questao["esperado"]:
-            sheet.append_row([nome, 10])
+            atualizar_pontuacao(nome, 10)
             return jsonify({"status": "ok", "message": "Correto! +10 pontos"})
         else:
+            # Verifica proximidade
             score = max(difflib.SequenceMatcher(None, codigo, s).ratio() for s in questao["solucoes"])
             if score > 0.6:
-                return jsonify({"status": "quase", "message": "Quase lá, sua solução está próxima!"})
+                atualizar_pontuacao(nome, 5)
+                return jsonify({"status": "quase", "message": "Quase lá, sua solução está próxima! +5 pontos"})
             return jsonify({"status": "erro", "message": "Resposta incorreta"})
     except Exception as e:
         return jsonify({"status": "erro", "message": str(e)})
