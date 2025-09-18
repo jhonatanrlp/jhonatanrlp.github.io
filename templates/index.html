@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quiz R ➝ Python</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f3f4f6;
+      color: #333;
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 800px;
+      background: #fff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      text-align: center;
+      color: #2563eb;
+      margin-bottom: 25px;
+    }
+
+    .questao {
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    textarea {
+      height: 120px;
+      font-family: monospace;
+    }
+
+    .btns {
+    display: flex;
+    justify-content: center; 
+    margin-top: 20px;
+    }
+
+  button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+      button:hover {
+    background: #1d4ed8;
+    }
+
+    #feedback {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .ok { color: green; }
+    .erro { color: red; }
+    .quase { color: orange; }
+
+    h2 {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #f9fafb;
+      margin: 5px 0;
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-size: 15px;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Quiz: R ➝ Python</h1>
+
+    <p id="questao" class="questao"><b>Questão:</b> carregando...</p>
+
+    <input type="text" id="nome" placeholder="Digite seu nome..." />
+    <textarea id="codigo" placeholder="Escreva seu código Python aqui..."></textarea>
+
+    <div class="btns">
+    <button id="acao" onclick="acao()">Próxima ➡️</button>
+    </div>
+
+
+    <div id="feedback"></div>
+
+    <h2>🏆 Leaderboard</h2>
+    <ul id="leaderboard"></ul>
+  </div>
+
+  <script>
+  let questoes = [];
+  let questaoAtual = 0;
+  let pontos = 0;
+
+  async function carregarQuestoes() {
+    const res = await fetch("/quiz");
+    questoes = await res.json();
+    mostrarQuestao();
+    atualizarBotao();
+  }
+
+  function mostrarQuestao() {
+    const q = questoes[questaoAtual];
+    document.getElementById("questao").innerHTML =
+      `<b>Questão ${questaoAtual + 1}:</b> R: <code>${q.pergunta}</code>`;
+    document.getElementById("codigo").value = "";
+    document.getElementById("feedback").innerText = "";
+  }
+
+  function atualizarBotao() {
+    const btn = document.getElementById("acao");
+    if (questaoAtual < questoes.length - 1) {
+      btn.innerText = "Próxima ➡️";
+    } else {
+      btn.innerText = "Enviar Resultado 🏆";
+    }
+  }
+
+  async function acao() {
+    const nome = document.getElementById("nome").value.trim();
+    const codigo = document.getElementById("codigo").value.trim();
+    const feedback = document.getElementById("feedback");
+
+    if (!nome || !codigo) {
+      feedback.innerText = "⚠️ Preencha todos os campos!";
+      feedback.className = "erro";
+      return;
+    }
+
+    const q = questoes[questaoAtual];
+
+    const res = await fetch("/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome, questao_id: q.id, codigo })
+    });
+
+    const data = await res.json();
+    feedback.innerText = data.message;
+
+    if (data.status === "ok") {
+      feedback.className = "ok";
+      pontos += 10; // soma pontos
+    } else if (data.status === "quase") {
+      feedback.className = "quase";
+    } else {
+      feedback.className = "erro";
+    }
+
+    // Se ainda não for última, vai pra próxima
+    if (questaoAtual < questoes.length - 1) {
+      questaoAtual++;
+      mostrarQuestao();
+      atualizarBotao();
+    } else {
+      // Última questão → envia total
+      await fetch("/finalizar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, pontos })
+      });
+      feedback.innerText = `🏆 Quiz finalizado! Sua pontuação: ${pontos}`;
+      feedback.className = "ok";
+      atualizarLeaderboard();
+    }
+  }
+
+  async function atualizarLeaderboard() {
+    const res = await fetch("/leaderboard");
+    const data = await res.json();
+    const lb = document.getElementById("leaderboard");
+    lb.innerHTML = "";
+
+    data.forEach(item => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span>${item.nome}</span><span>${item.pontos} pts</span>`;
+      lb.appendChild(li);
+    });
+  }
+
+  carregarQuestoes();
+  atualizarLeaderboard();
+</script>
+
+</body>
+</html>

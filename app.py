@@ -7,13 +7,11 @@ import numpy as np
 
 app = Flask(__name__)
 
-# --- Configuração Google Sheets ---j
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_name("credenciais.json", scope)
 client = gspread.authorize(creds)
 sheet = client.open("Leaderboard").sheet1
 
-# --- Questões ---
 QUESTOES = [
     {
         "id": 1,
@@ -70,7 +68,7 @@ QUESTOES = [
     {
         "id": 7,
         "pergunta": "df <- data.frame(x=c(1,2,3))\ndf2 <- df %>% mutate(y = x*2)",
-        "esperado": [2,4,6],  # valores da nova coluna y
+        "esperado": [2,4,6], 
         "solucoes": [
             'import pandas as pd\ndf = pd.DataFrame({"x":[1,2,3]})\ndf["y"] = df["x"]*2\ndf["y"].tolist()'
         ]
@@ -149,17 +147,14 @@ def submit():
     try:
         exec(codigo, {}, local_vars)
 
-        # 1º tenta pegar "result"
         valor = local_vars.get("result")
 
-        # 2º se não tem result, pega último valor do dicionário
         if valor is None:
             if "__builtins__" in local_vars:
                 del local_vars["__builtins__"]
             if local_vars:
                 valor = list(local_vars.values())[-1]
 
-        # Validação da resposta
         if valor == questao["esperado"]:
             sheet.append_row([nome, 10])
             return jsonify({"status": "ok", "message": "Correto! +10 pontos"})
