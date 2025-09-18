@@ -1,1 +1,4 @@
-/credenciais.json
+.env
+.env.local
+/credentials.json
+.json
