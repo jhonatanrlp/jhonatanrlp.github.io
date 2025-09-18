@@ -146,7 +146,6 @@ def submit():
     local_vars = {}
     try:
         exec(codigo, {}, local_vars)
-
         valor = local_vars.get("result")
 
         if valor is None:
@@ -155,21 +154,20 @@ def submit():
             if local_vars:
                 valor = list(local_vars.values())[-1]
 
-        # Se acertou
         if valor == questao["esperado"]:
-            atualizar_pontuacao(nome, 10)
+            sheet.append_row([nome, 10])   # sempre cria nova linha
             return jsonify({"status": "ok", "message": "Correto! +10 pontos"})
         
-        # Se ficou próximo
         score = max(difflib.SequenceMatcher(None, codigo, s).ratio() for s in questao["solucoes"])
         if score > 0.6:
-            atualizar_pontuacao(nome, 5)
-            return jsonify({"status": "quase", "message": "Quase lá, sua solução está próxima! +5 pontos"})
+            sheet.append_row([nome, 5])   # nova linha
+            return jsonify({"status": "quase", "message": "Quase lá, +5 pontos"})
         
-        # Se errou
+        sheet.append_row([nome, 0])       # se errou
         return jsonify({"status": "erro", "message": "Resposta incorreta"})
     
     except Exception as e:
+        sheet.append_row([nome, 0])
         return jsonify({"status": "erro", "message": str(e)})
     
 @app.route("/finalizar", methods=["POST"])
